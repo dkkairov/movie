@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
-import '../movie_list/movie_list_widget.dart';
+import 'package:movie/Library/Widgets/Inherited/provider.dart';
+import 'package:movie/domain/data_providers/session_data_provider.dart';
+import 'package:movie/widgets/main_screen/main_screen_model.dart';
+import 'package:movie/widgets/movie_list/movie_list_widget.dart';
+import 'package:movie/widgets/movie_list/movie_model.dart';
 
 class MainScreenWidget extends StatefulWidget {
   const MainScreenWidget({Key? key}) : super(key: key);
@@ -10,6 +14,7 @@ class MainScreenWidget extends StatefulWidget {
 
 class _MainScreenWidgetState extends State<MainScreenWidget> {
   int _selectedTab = 0;
+  final movieListModel = MovieListModel();
 
   void onSelectTab(int index) {
     if (_selectedTab == index) return;
@@ -18,24 +23,39 @@ class _MainScreenWidgetState extends State<MainScreenWidget> {
     });
   }
 
+  @override
+  void initState() {
+    super.initState();
+
+    movieListModel.loadMovies();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final model = NotifierProvider.read<MainScreenModel>(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text('TMDB'),
+        title: const Text('TMDB'),
       ),
       body: IndexedStack(
         index: _selectedTab,
         children: [
-          Text('News'),
-          MovieListWidget(),
-          Text('Serials'),
+          Container(
+            child: ElevatedButton(
+              child: const Text('Log out'),
+              onPressed: () => SessionDataProvider().setSessionId(null),
+            ),
+          ),
+          NotifierProvider(
+              model: movieListModel,
+              child: const MovieListWidget()
+          ),
+          const Text('Serials'),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedTab,
-        items: [
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',

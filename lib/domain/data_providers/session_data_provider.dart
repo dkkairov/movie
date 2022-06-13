@@ -8,5 +8,11 @@ class SessionDataProvider {
   static const _secureStorage = FlutterSecureStorage();
 
   Future<String?> getSessionId() => _secureStorage.read(key: _keys.sessionId);
-  Future<void> setSessionId(String value) => _secureStorage.write(key: _keys.sessionId, value: value);
+  Future<void> setSessionId(String? value) {
+    if(value != null){
+      return _secureStorage.write(key: _keys.sessionId, value: value);
+    } else {
+      return _secureStorage.delete(key: _keys.sessionId);
+    }
+  }
 }

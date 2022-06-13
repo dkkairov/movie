@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:movie/domain/api_client/api_client.dart';
 import 'package:movie/domain/data_providers/session_data_provider.dart';
+import 'package:movie/ui/navigation/main_navigation.dart';
 
 class AuthModel extends ChangeNotifier {
   final _apiClient = ApiClient();
@@ -30,12 +33,22 @@ class AuthModel extends ChangeNotifier {
     _isAuthProgress = true;
     notifyListeners();
     String? sessionId;
-    try{
+    try {
       sessionId = await _apiClient.auth(
           username: login, password: password
       );
-    }catch(e){
-      _errorMessage = 'Incorrect login or password';
+    } on ApiClientException catch(e) {
+      switch (e.type) {
+        case ApiClientExceptionType.Network:
+          _errorMessage = 'Server is not available. Please check internet connection.';
+          break;
+        case ApiClientExceptionType.Auth:
+          _errorMessage = 'Incorrect login or password.';
+          break;
+        case ApiClientExceptionType.Other:
+          _errorMessage = 'Error. Please try again.';
+          break;
+      }
     }
 
     _isAuthProgress = false;
@@ -49,32 +62,8 @@ class AuthModel extends ChangeNotifier {
       return;
     }
     await _sessionDataProvider.setSessionId(sessionId);
-    Navigator.of(context).pushNamed('/main_screen');
+    Navigator.of(context).pushReplacementNamed(MainNavigationRouteNames.mainScreen);
   }
 
 }
 
-class AuthProvider extends InheritedNotifier {
-  final AuthModel model;
-  const AuthProvider({
-    Key? key,
-    required this.model,
-    required Widget child,
-  }) : super(
-      key: key,
-      notifier: model,
-      child: child
-  );
-
-  static AuthProvider? watch(BuildContext context) {
-    return context
-        .dependOnInheritedWidgetOfExactType<AuthProvider>();
-  }
-
-  static AuthProvider? read(BuildContext context) {
-    final widget = context
-        .getElementForInheritedWidgetOfExactType<AuthProvider>()?.widget;
-    return widget is AuthProvider ? widget : null;
-  }
-
-}

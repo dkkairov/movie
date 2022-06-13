@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:movie/Library/Widgets/Inherited/provider.dart';
 import 'package:movie/theme/app_button_style.dart';
 import 'package:movie/widgets/auth/auth_model.dart';
 
@@ -81,7 +82,7 @@ class _FormWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = AuthProvider.read(context)?.model;
+    final model = NotifierProvider.read<AuthModel>(context);
     const textStyle = TextStyle(
       fontSize: 16,
       color: Colors.blueAccent,
@@ -136,7 +137,7 @@ class AuthButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final model = AuthProvider.watch(context)?.model;
+    final model = NotifierProvider.watch<AuthModel>(context);
     final onPressed = model?.canStartAuth == true ? () => model?.auth(context) : null;
     final child = model?.isAuthProgress == true ? SizedBox(
       child: const CircularProgressIndicator(
@@ -159,7 +160,7 @@ class _ErrorMessagesWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final errorMessage = AuthProvider.watch(context)?.model.errorMessage;
+    final errorMessage = NotifierProvider.watch<AuthModel>(context)?.errorMessage;
     if(errorMessage == null) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 20),

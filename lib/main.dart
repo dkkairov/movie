@@ -1,59 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:movie/theme/app_colors.dart';
-import 'package:movie/widgets/auth/auth_model.dart';
-import 'package:movie/widgets/auth/auth_widget.dart';
-import 'package:movie/widgets/main_screen/main_screen_widget.dart';
-import 'package:movie/widgets/movie_details/movie_details_widget.dart';
+import 'package:movie/ui/navigation/main_navigation.dart';
+import 'package:movie/widgets/app/my_app_model.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final model = MyAppModel();
+  await model.checkAuth();
+  final app = MyApp(model: model);
+  runApp(app);
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  final MyAppModel model;
+  static final mainNavigation = MainNavigation();
+  const MyApp({Key? key, required this.model}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        appBarTheme: AppBarTheme(
+        appBarTheme: const AppBarTheme(
             backgroundColor: AppColors.mainDarkBlue,
         ),
-        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: AppColors.mainDarkBlue,
           selectedItemColor: AppColors.mainWhite,
           unselectedItemColor: AppColors.mainLightBlue,
         ),
         primarySwatch: Colors.blue,
       ),
-      routes: {
-        '/auth': (context) => AuthProvider(
-            model: AuthModel(),
-            child: AuthWidget()
-        ),
-        '/main_screen': (context) => MainScreenWidget(),
-        '/main_screen/movie_details': (context) {
-
-          final arguments = ModalRoute.of(context)?.settings.arguments;
-          if (arguments is int) {
-            return MovieDetailsWidget(movieId: arguments);
-          } else {
-            return MovieDetailsWidget(movieId: 1);
-          }
-        },
-      },
-      initialRoute: '/auth',
-      // onGenerateRoute: (RouteSettings settings) {
-      //   return MaterialPageRoute<void>(builder: (context) {
-      //     return Scaffold(
-      //       body: Center(
-      //           child: Text('Error 404')
-      //       )
-      //     );
-      //   });
-      // },
+      routes: mainNavigation.routes,
+      initialRoute: mainNavigation.initialRoute(model.isAuth),
+      onGenerateRoute: mainNavigation.onGeneratedRoute,
     );
   }
 }
