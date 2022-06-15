@@ -2,9 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:movie/domain/entity/popular_movie_response.dart';
 
-enum ApiClientExceptionType {
-  Network, Auth, Other
-}
+enum ApiClientExceptionType { Network, Auth, Other }
+
 class ApiClientException implements Exception {
   final ApiClientExceptionType type;
 
@@ -14,9 +13,10 @@ class ApiClientException implements Exception {
 class ApiClient {
   final _client = HttpClient();
   static const _host = 'https://api.themoviedb.org/3';
-  static const _imageUrl = 'https://image.tmbd.org/t/p/w500';
+  static const _imageUrl = 'https://image.tmdb.org/t/p/w500';
   static const _apiKey = '7f1ed8811f74eb9f40f4818c92967f9b';
 
+  static String imageUrl(String path) => _imageUrl + path;
 
 
   Future<String> auth({
@@ -64,11 +64,12 @@ class ApiClient {
 
 
 
-  Future<T> _post<T>(String path,
+  Future<T> _post<T>(
+      String path,
       Map<String, dynamic>? bodyParameters,
-      T Function(dynamic json) parser, [
-    Map<String, dynamic>? urlParameters,
-    ]) async {
+      T Function(dynamic json) parser,
+      [Map<String, dynamic>? urlParameters,]
+      ) async {
       try{
       final url = _makeUri(path, urlParameters);
       final request = await _client.postUrl(url);
@@ -102,6 +103,7 @@ class ApiClient {
   }
 
 
+
   Future<PopularMovieResponse> popularMovie(int page, String locale) async {
     final parser = (dynamic json) {
       final jsonMap = json as Map<String, dynamic>;
@@ -109,13 +111,13 @@ class ApiClient {
       return response;
     };
     final result = _get(
-        '/movie/popular',
-        parser,
-        <String, dynamic>{
-          'api_key': _apiKey,
-          'page': page.toString(),
-          'language': locale,
-        },
+      '/movie/popular',
+      parser,
+      <String, dynamic>{
+        'api_key': _apiKey,
+        'page': page.toString(),
+        'language': locale,
+      },
     );
     return result;
   }

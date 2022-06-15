@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:movie/Library/Widgets/Inherited/provider.dart';
+import 'package:movie/domain/api_client/api_client.dart';
 import 'package:movie/theme/app_colors.dart';
-import 'package:movie/widgets/movie_list/movie_model.dart';
+import 'package:movie/widgets/movie_list/movie_list_model.dart';
 
 class MovieListWidget extends StatelessWidget {
   const MovieListWidget({Key? key}) : super(key: key);
@@ -9,7 +11,7 @@ class MovieListWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = NotifierProvider.watch<MovieListModel>(context);
-    if(model == null) return const SizedBox.shrink();
+    if (model == null) return const SizedBox.shrink();
     return Stack(
       children: [
         ListView.builder(
@@ -18,7 +20,10 @@ class MovieListWidget extends StatelessWidget {
             itemCount: model.movies.length,
             itemExtent: 163,
             itemBuilder: (BuildContext context, int index) {
+
               final movie = model.movies[index];
+              final posterPath = movie.posterPath;
+
               return Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 child: Stack(
@@ -40,6 +45,9 @@ class MovieListWidget extends StatelessWidget {
                       child: Row(
                         children: [
                           //Image(image: AssetImage(movie.imageName)),
+                          posterPath != null
+                            ? Image.network(ApiClient.imageUrl(posterPath), width: 95,)
+                            : SizedBox.shrink(),
                           const SizedBox(width: 10,),
                           Expanded(
                             child: Column(
@@ -54,7 +62,7 @@ class MovieListWidget extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 5,),
                                 Text(
-                                  movie.releaseDate?.toString() ?? '6345444',
+                                  model.stringFromDate(movie.releaseDate),
                                   style: const TextStyle(color: Colors.grey),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,

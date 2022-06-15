@@ -3,7 +3,7 @@ import 'package:movie/Library/Widgets/Inherited/provider.dart';
 import 'package:movie/domain/data_providers/session_data_provider.dart';
 import 'package:movie/widgets/main_screen/main_screen_model.dart';
 import 'package:movie/widgets/movie_list/movie_list_widget.dart';
-import 'package:movie/widgets/movie_list/movie_model.dart';
+import 'package:movie/widgets/movie_list/movie_list_model.dart';
 
 class MainScreenWidget extends StatefulWidget {
   const MainScreenWidget({Key? key}) : super(key: key);
@@ -23,11 +23,12 @@ class _MainScreenWidgetState extends State<MainScreenWidget> {
     });
   }
 
-  @override
-  void initState() {
-    super.initState();
 
-    movieListModel.loadMovies();
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    movieListModel.setupLocale(context);
   }
 
   @override

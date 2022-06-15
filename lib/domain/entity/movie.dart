@@ -15,7 +15,8 @@ class Movie {
   final String originalLanguage;
   final String title;
   final String? backdropPath;
-  final double populatity;
+  final double popularity;
+  final int voteCount;
   final bool video;
   final double voteAverage;
 
@@ -30,9 +31,10 @@ class Movie {
     required this.originalLanguage,
     required this.title,
     required this.backdropPath,
-    required this.populatity,
+    required this.popularity,
+    required this.voteCount,
     required this.video,
-    required this.voteAverage
+    required this.voteAverage,
   });
 
   factory Movie.fromJson(Map<String, dynamic> json) => _$MovieFromJson(json);
