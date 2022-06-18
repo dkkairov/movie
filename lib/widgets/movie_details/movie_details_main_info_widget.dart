@@ -1,8 +1,11 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:movie/Library/Widgets/Inherited/provider.dart';
+import 'package:movie/domain/api_client/api_client.dart';
 import 'package:movie/resources/resources.dart';
 import 'package:movie/theme/app_colors.dart';
 import 'package:movie/widgets/elements/radial_percent_widget.dart';
+import 'package:movie/widgets/movie_details/movie_details_model.dart';
 
 class MovieDetailsMainInfoWidget extends StatelessWidget {
   const MovieDetailsMainInfoWidget({Key? key}) : super(key: key);
@@ -12,7 +15,7 @@ class MovieDetailsMainInfoWidget extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       child: Column(
-        children: [
+        children: const [
           _TopPosterWidget(),
           _MovieNameWidget(),
           _RatingWidget(),
@@ -33,18 +36,26 @@ class _TopPosterWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Image(
-          image: AssetImage(AppImages.backgroundPoster),
-        ),
-        Positioned(
-          top: 20,
-          left: 20,
-          bottom: 20,
-          child: Image(image: AssetImage(AppImages.mainPoster)),
-        ),
-      ],
+    final model = NotifierProvider.watch<MovieDetailsModel>(context);
+    final backdropPath = model?.movieDetails?.backdropPath;
+    final posterPath = model?.movieDetails?.posterPath;
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Stack(
+        children: [
+          backdropPath != null
+              ? Image.network(ApiClient.imageUrl(backdropPath))
+              : const SizedBox.shrink(),
+          Positioned(
+            top: 20,
+            left: 20,
+            bottom: 20,
+            child: posterPath != null
+                ? Image.network(ApiClient.imageUrl(posterPath))
+                : const SizedBox.shrink(),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -56,6 +67,9 @@ class _MovieNameWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = NotifierProvider.watch<MovieDetailsModel>(context);
+    var year = model?.movieDetails?.releaseDate?.year.toString();
+    year = year != null ? ' ($year)' : '';
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20),
       child: RichText(
@@ -63,15 +77,15 @@ class _MovieNameWidget extends StatelessWidget {
         maxLines: 3,
         text: TextSpan(children: [
           TextSpan(
-              text: 'The Passion of the Christ ',
-              style: TextStyle(
+              text: model?.movieDetails?.title ?? '',
+              style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 20,
               )
           ),
           TextSpan(
-              text: '(2004) ',
-              style: TextStyle(
+              text: year,
+              style: const TextStyle(
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
               )
@@ -90,6 +104,9 @@ class _RatingWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final movieDetails = NotifierProvider.watch<MovieDetailsModel>(context)?.movieDetails;
+    var voteAverage = movieDetails?.voteAverage ?? 0;
+    voteAverage = voteAverage * 10;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -105,8 +122,8 @@ class _RatingWidget extends StatelessWidget {
                   height: 50,
                   child: RadialPercentWidget(
                       child:
-                      Text('74'),
-                      percent: 0.74,
+                      Text(voteAverage.toStringAsFixed(0)),
+                      percent: voteAverage / 100,
                       fillColor: AppColors.mainFillColor,
                       lineColor: AppColors.mainLineColor,
                       freeColor: AppColors.mainFreeColor,
@@ -143,16 +160,40 @@ class _GenreInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = NotifierProvider.watch<MovieDetailsModel>(context);
+
+    if (model == null) return const SizedBox.shrink();
+    var texts = <String>[];
+    final releaseDate = model.movieDetails?.releaseDate;
+    if (releaseDate != null) {
+      texts.add(model.stringFromDate(releaseDate));
+    }
+    final productionCountries = model.movieDetails?.productionCountries;
+    if (productionCountries != null && productionCountries.isNotEmpty) {
+      texts.add('${productionCountries.first.iso}');
+    }
+    final runtime = model.movieDetails?.runtime ?? 0;
+    final milliseconds = runtime * 60000;
+    final runtimeDate = DateTime.fromMillisecondsSinceEpoch(milliseconds).toUtc();
+    texts.add(DateFormat.Hm().format(runtimeDate));
+    final genres = model.movieDetails?.genres;
+    if (genres != null && genres.isNotEmpty) {
+      var genresNames = <String>[];
+      for (var genre in genres) {
+        genresNames.add(genre.name);
+      }
+      texts.add(genresNames.join(', '));
+    }
     return Container(
       width: double.infinity,
       child: ColoredBox(
         color: AppColors.mainDarkBrown,
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 70),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
           child: Text(
-            'R, 02/25/2004 (US) Drama 2h 7m',
+            texts.join('  '),
             textAlign: TextAlign.center,
-            style: TextStyle(
+            style: const TextStyle(
               color: AppColors.mainWhite,
               fontSize: 16,
           ),
@@ -172,29 +213,22 @@ class _DescriptionWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final model = NotifierProvider.watch<MovieDetailsModel>(context);
+    final overview = model?.movieDetails?.overview ?? '';
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         children: [
           Align(
             child: Text(
-              'Overview',
-              style: TextStyle(
+              overview,
+              style: const TextStyle(
                   color: AppColors.mainWhite,
                   fontSize: 16,
                   fontWeight: FontWeight.w400
               ),
             ),
             alignment: Alignment.centerLeft,
-          ),
-          Text(
-            'A graphic portrayal of the last twelve hours '
-                'of Jesus of Nazareths life.',
-            style: TextStyle(
-                color: AppColors.mainWhite,
-                fontSize: 16,
-                fontWeight: FontWeight.w400
-            ),
           ),
         ],
       ),
