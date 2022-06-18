@@ -6,11 +6,13 @@ import 'package:movie/widgets/main_screen/main_screen_model.dart';
 import 'package:movie/widgets/main_screen/main_screen_widget.dart';
 import 'package:movie/widgets/movie_details/movie_details_model.dart';
 import 'package:movie/widgets/movie_details/movie_details_widget.dart';
+import 'package:movie/widgets/movie_trailer/movie_trailer_widget.dart';
 
 abstract class MainNavigationRouteNames {
   static const auth = 'auth';
   static const mainScreen = '/';
   static const movieDetails = '/movie_details';
+  static const movieTrailerWidget = '/movie_details/trailer';
 }
 
 class MainNavigation {
@@ -38,6 +40,12 @@ class MainNavigation {
               create: () => MovieDetailsModel(movieId),
               child: MovieDetailsWidget()
           );
+        });
+      case MainNavigationRouteNames.movieTrailerWidget:
+        final arguments = settings.arguments;
+        final youtubeKey = arguments is String ? arguments : '';
+        return MaterialPageRoute(builder: (context) {
+          return MovieTrailerWidget(youtubeKey: youtubeKey);
         });
       default:
         const widget = Text('Navigation Error');

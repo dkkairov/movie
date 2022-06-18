@@ -4,6 +4,7 @@ import 'package:movie/Library/Widgets/Inherited/provider.dart';
 import 'package:movie/domain/api_client/api_client.dart';
 import 'package:movie/domain/entity/movie_details_credits.dart';
 import 'package:movie/theme/app_colors.dart';
+import 'package:movie/ui/navigation/main_navigation.dart';
 import 'package:movie/widgets/elements/radial_percent_widget.dart';
 import 'package:movie/widgets/movie_details/movie_details_model.dart';
 
@@ -107,6 +108,9 @@ class _RatingWidget extends StatelessWidget {
     final movieDetails = NotifierProvider.watch<MovieDetailsModel>(context)?.movieDetails;
     var voteAverage = movieDetails?.voteAverage ?? 0;
     voteAverage = voteAverage * 10;
+    final videos = movieDetails?.videos.results
+        .where((video) => video.type == 'Trailer' && video.site == 'YouTube');
+    final trailerKey = videos?.isNotEmpty == true ? videos?.first.key : null;
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -140,14 +144,19 @@ class _RatingWidget extends StatelessWidget {
           width: 1,
           color: Colors.grey,
         ),
-        TextButton.icon(
-          onPressed: () {},
-          icon: const Icon(Icons.play_arrow),
-          label: const Text('Play trailer'),
-          style: TextButton.styleFrom(
-            primary: AppColors.mainWhite, // This is a custom color variable
-          ),
-        ),
+        trailerKey != null
+            ? TextButton.icon(
+                onPressed: () => Navigator.of(context).pushNamed(
+                    MainNavigationRouteNames.movieTrailerWidget,
+                    arguments: trailerKey
+                ),
+                icon: const Icon(Icons.play_arrow),
+                label: const Text('Play trailer'),
+                style: TextButton.styleFrom(
+                  primary: AppColors.mainWhite, // This is a custom color variable
+                ),
+              )
+            : const SizedBox.shrink(),
       ],
     );
   }
@@ -169,7 +178,7 @@ class _GenreInfoWidget extends StatelessWidget {
     }
     final productionCountries = model.movieDetails?.productionCountries;
     if (productionCountries != null && productionCountries.isNotEmpty) {
-      texts.add('${productionCountries.first.iso}');
+      texts.add(productionCountries.first.iso);
     }
     final runtime = model.movieDetails?.runtime ?? 0;
     final milliseconds = runtime * 60000;
@@ -302,14 +311,14 @@ class _TeamInfoWidgetRowItem extends StatelessWidget {
     const _jobTitleStyle = TextStyle(
         color: AppColors.mainWhite,
         fontSize: 16,
-        fontWeight: FontWeight.w400
+        fontWeight: FontWeight.w200
     );
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(employee.originalName, style: _nameStyle),
-          Text(employee.job, style: _nameStyle),
+          Text(employee.job, style: _jobTitleStyle),
         ],
       ),
     );
