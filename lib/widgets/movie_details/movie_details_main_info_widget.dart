@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:movie/Library/Widgets/Inherited/provider.dart';
 import 'package:movie/domain/api_client/api_client.dart';
-import 'package:movie/resources/resources.dart';
+import 'package:movie/domain/entity/movie_details_credits.dart';
 import 'package:movie/theme/app_colors.dart';
 import 'package:movie/widgets/elements/radial_percent_widget.dart';
 import 'package:movie/widgets/movie_details/movie_details_model.dart';
@@ -130,8 +130,8 @@ class _RatingWidget extends StatelessWidget {
                       lineWidth: 3
                   ),
                 ),
-                SizedBox(width: 15,),
-                Text('User score'),
+                const SizedBox(width: 15,),
+                const Text('User score'),
               ],
             )
         ),
@@ -142,8 +142,8 @@ class _RatingWidget extends StatelessWidget {
         ),
         TextButton.icon(
           onPressed: () {},
-          icon: Icon(Icons.play_arrow),
-          label: Text('Play trailer'),
+          icon: const Icon(Icons.play_arrow),
+          label: const Text('Play trailer'),
           style: TextButton.styleFrom(
             primary: AppColors.mainWhite, // This is a custom color variable
           ),
@@ -161,7 +161,6 @@ class _GenreInfoWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final model = NotifierProvider.watch<MovieDetailsModel>(context);
-
     if (model == null) return const SizedBox.shrink();
     var texts = <String>[];
     final releaseDate = model.movieDetails?.releaseDate;
@@ -243,81 +242,81 @@ class _TeamInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final nameStyle = TextStyle(
-      color: AppColors.mainWhite,
-      fontSize: 16,
-      fontWeight: FontWeight.w400
-    );
-
-    final jobTitleStyle = TextStyle(
-      color: AppColors.mainWhite,
-      fontSize: 16,
-      fontWeight: FontWeight.w400
-    );
-
+    final model = NotifierProvider.watch<MovieDetailsModel>(context);
+    var crew = model?.movieDetails?.credits.crew;
+    if (crew == null || crew.isEmpty) return const SizedBox.shrink();
+    crew = crew.length > 4 ? crew.sublist(0, 4) : crew;
+    var crewChunks = <List<Employee>>[];
+    for (var i = 0; i < crew.length; i += 2) {
+      crewChunks.add(
+          crew.sublist(i, i + 2 > crew.length ? crew.length : i + 2),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        children: crewChunks.map((chunk) =>
+            Padding(
+              padding: const EdgeInsets.only(bottom: 15),
+              child: _TeamInfoWidgetRow(employes: chunk),
+            )).toList(),
+      ),
+    );
+  }
+}
+
+class _TeamInfoWidgetRow extends StatelessWidget {
+  final List<Employee> employes;
+  const _TeamInfoWidgetRow({
+    Key? key,
+    required this.employes
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.max,
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: employes.map((employee) =>
+          _TeamInfoWidgetRowItem(employee: employee)).toList(),
+    );
+  }
+}
+
+class _TeamInfoWidgetRowItem extends StatelessWidget {
+  final Employee employee;
+  const _TeamInfoWidgetRowItem({
+    Key? key,
+    required this.employee
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    const _nameStyle = TextStyle(
+        color: AppColors.mainWhite,
+        fontSize: 16,
+        fontWeight: FontWeight.w400
+    );
+    const _jobTitleStyle = TextStyle(
+        color: AppColors.mainWhite,
+        fontSize: 16,
+        fontWeight: FontWeight.w400
+    );
+    return Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Mel Gibson', style: nameStyle,),
-                    Text('Director', style: jobTitleStyle)
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Benedict Flitzgerald', style: nameStyle),
-                    Text('Screenplay', style: jobTitleStyle)
-                  ],
-                ),
-              )
-            ],
-          ),
-          SizedBox(height: 20,),
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('John Hohns', style: nameStyle),
-                    Text('Screenplay', style: jobTitleStyle)
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Liza John', style: nameStyle),
-                    Text('Screenplay', style: jobTitleStyle)
-                  ],
-                ),
-              )
-            ],
-          ),
+          Text(employee.originalName, style: _nameStyle),
+          Text(employee.job, style: _nameStyle),
         ],
       ),
     );
   }
 }
+
+
+
 
 
